@@ -1,0 +1,8 @@
+[package]
+name = "telegram-bot-types-parser"
+version = "0.1.0"
+authors = ["Marat Safin <jeizsm@gmail.com>"]
+
+[dependencies]
+kuchiki = "0.7.0"
+codegen = { git = "https://github.com/LegNeato/codegen", branch = "issue-3-and-4-field-documentation-annotation" }
