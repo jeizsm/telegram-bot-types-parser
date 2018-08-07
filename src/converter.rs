@@ -61,7 +61,7 @@ impl From<TelegramTypeOrMethod> for RustStruct {
 
 impl IntoRustType for TelegramFieldType {
     fn into_type(self, name: &str) -> RustType {
-        if self.0.contains(" or ") || self.0.contains(" and ") {
+        if self.name.contains(" or ") || self.name.contains(" and ") {
             RustType::Enum(self.into_enum(name))
         } else {
             RustType::String(self.into_string(name))
@@ -71,12 +71,12 @@ impl IntoRustType for TelegramFieldType {
 
 impl IntoRustTypeString for TelegramFieldType {
     fn into_string(self, field_name: &str) -> String {
-        let mut string = match (self.0.as_ref(), field_name) {
+        let mut string = match (self.name.as_ref(), field_name) {
             ("Float number", _) => "Float".to_string(),
             ("Boolean", _) => "bool".to_string(),
             (_, "pinned_message") => "Box<Message>".to_string(),
             (_, "reply_to_message") => "Box<Message>".to_string(),
-            _ => self.0,
+            _ => self.name,
         };
         loop {
             let start_index = string.find("Array of ");
@@ -89,36 +89,35 @@ impl IntoRustTypeString for TelegramFieldType {
                 None => break,
             }
         }
-        match self.1 {
-            true => format!("Option<{}>", string),
-            false => string,
+        if self.optional {
+            format!("Option<{}>", string)
+        } else {
+            string
         }
     }
 }
 
 impl IntoRustEnum for TelegramFieldType {
     fn into_enum(self, name: &str) -> RustEnum {
-        let is_array = self.0.starts_with("Array of ");
+        let is_array = self.name.starts_with("Array of ");
         let variants = if is_array {
-            self
-                .0
+            self.name
                 .replacen("Array of ", "", 1)
                 .split(" and ")
                 .map(|string| string.to_string())
                 .collect()
         } else {
-            self
-                .0
+            self.name
                 .split(" or ")
                 .map(|string| string.to_string())
                 .collect()
         };
         RustEnum {
-            is_optional: self.1,
-            is_array: is_array,
+            is_optional: self.optional,
+            is_array,
             variants,
             doc: None,
-            name: camel_case(&name)
+            name: camel_case(&name),
         }
     }
 }

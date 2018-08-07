@@ -20,7 +20,10 @@ pub struct TelegramField {
 }
 
 #[derive(Debug)]
-pub struct TelegramFieldType(pub String, pub bool);
+pub struct TelegramFieldType {
+    pub name: String,
+    pub optional: bool,
+}
 
 #[derive(Debug)]
 pub enum TelegramTypeOrMethod {
@@ -69,5 +72,5 @@ pub enum Kind {
 pub struct Module {
     pub kind: Kind,
     pub module_name: String,
-    pub module_type: String
+    pub module_type: String,
 }

@@ -100,14 +100,18 @@ impl Parse for TelegramType {
                     }).collect();
                 let doc = &field[2];
                 let optional = doc.starts_with("Optional. ");
-                let doc = match optional {
-                    true => doc.replace("Optional. ", ""),
-                    false => doc.to_string(),
+                let doc = if optional {
+                    doc.replace("Optional. ", "")
+                } else {
+                    doc.to_string()
                 };
                 TelegramField {
                     name: field[0].clone(),
-                    telegram_type: TelegramFieldType(field[1].clone(), optional),
-                    doc: doc,
+                    telegram_type: TelegramFieldType {
+                        name: field[1].clone(),
+                        optional,
+                    },
+                    doc,
                 }
             })
             .collect()
@@ -136,7 +140,10 @@ impl Parse for TelegramMethod {
                     }).collect();
                 TelegramField {
                     name: field[0].clone(),
-                    telegram_type: TelegramFieldType(field[1].clone(), "Optional" == field[2]),
+                    telegram_type: TelegramFieldType {
+                        name: field[1].clone(),
+                        optional: "Optional" == field[2],
+                    },
                     doc: field[3].clone(),
                 }
             })
@@ -159,16 +166,20 @@ impl Parse for RustEnum {
         let h4 = siblings.nth(1).unwrap();
         let doc = Self::parse_doc(&p);
         let name = Self::parse_name(&h4);
-        let variants = node.select("li").unwrap().map(|li| {
-            li.as_node()
-                .first_child()
-                .unwrap()
-                .first_child()
-                .unwrap()
-                .to_string()
-        }).collect();
+        let variants = node
+            .select("li")
+            .unwrap()
+            .map(|li| {
+                li.as_node()
+                    .first_child()
+                    .unwrap()
+                    .first_child()
+                    .unwrap()
+                    .to_string()
+            })
+            .collect();
         RustEnum {
-            name: name,
+            name,
             doc: Some(doc),
             variants,
             is_array: false,

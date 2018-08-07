@@ -18,12 +18,10 @@ pub fn snake_case(string: &str) -> String {
         .match_indices(char::is_uppercase)
         .map(|(i, character)| (i, character.to_string()))
         .collect();
-    let mut j = 0;
-    for (i, character) in vec.into_iter() {
+    for (i, (j, character)) in vec.into_iter().enumerate() {
         let mut lowercase = character.to_lowercase();
         lowercase.insert_str(0, "_");
         new_string.replace_range(i + j..i + j + 1, &lowercase);
-        j += 1;
     }
     new_string
 }

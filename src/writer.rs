@@ -1,8 +1,8 @@
 use codegen::{Field, Scope};
+use std::collections::HashSet;
 use std::fs;
 use std::path::Path;
-use types::{Kind, RustEnum, RustStruct, RustType, Module};
-use std::collections::HashSet;
+use types::{Kind, Module, RustEnum, RustStruct, RustType};
 use utils::{camel_case, snake_case};
 
 pub trait Writer {
@@ -15,7 +15,7 @@ impl Writer for RustStruct {
         match self.kind {
             Kind::Type => path.push("types"),
             Kind::Method => path.push("methods"),
-            _ => panic!("wrong kind")
+            _ => panic!("wrong kind"),
         };
         fs::create_dir_all(path.as_path()).unwrap();
         let file_name = snake_case(&self.name);
@@ -26,7 +26,7 @@ impl Writer for RustStruct {
             match self.kind {
                 Kind::Type => scope.import("super", "*"),
                 Kind::Method => scope.import("super", "*"),
-                _ => panic!("wrong kind")
+                _ => panic!("wrong kind"),
             };
             let new_struct = scope
                 .new_struct(&self.name)
@@ -51,15 +51,15 @@ impl Writer for RustStruct {
                         };
                         enum_type.write(dir.as_ref(), modules);
                         rust_type
-                    },
+                    }
                 };
                 let mut rust_field = match (field.name.as_ref(), field_type) {
                     ("type", field_type) => {
                         let mut field = Field::new("type_", field_type);
                         field.annotation(vec![r#"#[serde(rename = "type")]"#]);
                         field
-                    },
-                    (name, field_type) => Field::new(name, field_type)
+                    }
+                    (name, field_type) => Field::new(name, field_type),
                 };
                 rust_field.vis("pub").doc(&field.doc);
                 new_struct.push_field(rust_field);
@@ -69,7 +69,7 @@ impl Writer for RustStruct {
         let module = Module {
             kind: self.kind,
             module_name: file_name,
-            module_type: self.name
+            module_type: self.name,
         };
         modules.insert(module);
     }
@@ -102,14 +102,14 @@ impl Writer for RustEnum {
         let module = Module {
             kind: Kind::Enum,
             module_name: file_name,
-            module_type: self.name
+            module_type: self.name,
         };
         modules.insert(module);
     }
 }
 
-pub fn write_mod_files<'a>(dir: &str, kind: Kind, modules: impl Iterator<Item = &'a Module>) {
-    match kind {
+pub fn write_mod_files<'a>(dir: &str, kind: &Kind, modules: impl Iterator<Item = &'a Module>) {
+    match *kind {
         Kind::Type => write_types_mod(dir, modules),
         Kind::Method => write_methods_mod(dir, modules),
         Kind::Enum => write_enums_mod(dir, modules),
@@ -203,7 +203,10 @@ fn parse_single_mod(module: &Module, string: &mut String) {
     string.push_str("\n");
     let mut scope = Scope::new();
     scope
-        .import(&format!("self::{}", module.module_name), &module.module_type)
+        .import(
+            &format!("self::{}", module.module_name),
+            &module.module_type,
+        )
         .vis("pub");
     string.push_str(&scope.to_string());
 }
