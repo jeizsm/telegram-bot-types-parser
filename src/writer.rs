@@ -1,7 +1,7 @@
 use generator::generate_single_mod;
 use codegen::{Scope};
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use types::{Module, TypeKind};
 
 pub fn write_mod_files<'a>(dir: &str, kind: &TypeKind, modules: impl Iterator<Item = &'a Module>) {
@@ -16,13 +16,11 @@ fn write_types_mod<'a, P: AsRef<Path>>(dir: P, modules: impl Iterator<Item = &'a
     let mut path = dir.as_ref().to_path_buf();
     path.push("types");
     let mut string = String::new();
-    for module in modules {
-        let mut path = path.clone();
-        path.push(&module.module_name);
-        path.set_extension("rs");
-        fs::write(path, &module.contents).unwrap();
-        generate_single_mod(module, &mut string);
-    }
+    let mut scope = Scope::new();
+    scope.import("self::enums", "*").vis("pub");
+    string.push_str("pub mod enums;\n");
+    string.push_str(&scope.to_string());
+    write_module_file(&path, modules, &mut string);
     path.push("mod");
     path.set_extension("rs");
     let mut scope = Scope::new();
@@ -60,8 +58,6 @@ fn write_types_mod<'a, P: AsRef<Path>>(dir: P, modules: impl Iterator<Item = &'a
         .derive("Debug")
         .tuple_field("String")
         .vis("pub");
-    scope.import("self::enums", "*").vis("pub");
-    string.push_str("pub mod enums;\n");
     string.push_str(&scope.to_string());
     fs::write(path, string).unwrap();
 }
@@ -70,16 +66,10 @@ fn write_methods_mod<'a, P: AsRef<Path>>(dir: P, modules: impl Iterator<Item = &
     let mut path = dir.as_ref().to_path_buf();
     let mut string = String::new();
     path.push("methods");
-    for module in modules {
-        let mut path = path.clone();
-        path.push(&module.module_name);
-        path.set_extension("rs");
-        fs::write(path, &module.contents).unwrap();
-        generate_single_mod(module, &mut string);
-    }
     let mut scope = Scope::new();
     scope.import("types", "*");
     string.push_str(&scope.to_string());
+    write_module_file(&path, modules, &mut string);
     path.push("mod");
     path.set_extension("rs");
     fs::write(path, string).unwrap();
@@ -90,17 +80,21 @@ fn write_enums_mod<'a, P: AsRef<Path>>(dir: P, modules: impl Iterator<Item = &'a
     path.push("types");
     path.push("enums");
     let mut string = String::new();
+    let mut scope = Scope::new();
+    scope.import("super", "*");
+    string.push_str(&scope.to_string());
+    write_module_file(&path, modules, &mut string);
+    path.push("mod");
+    path.set_extension("rs");
+    fs::write(path, string).unwrap();
+}
+
+pub fn write_module_file<'a>(path: &PathBuf, modules: impl Iterator<Item = &'a Module>, string: &mut String) {
     for module in modules {
         let mut path = path.clone();
         path.push(&module.module_name);
         path.set_extension("rs");
         fs::write(path, &module.contents).unwrap();
-        generate_single_mod(module, &mut string);
+        generate_single_mod(module, string);
     }
-    let mut scope = Scope::new();
-    scope.import("super", "*");
-    string.push_str(&scope.to_string());
-    path.push("mod");
-    path.set_extension("rs");
-    fs::write(path, string).unwrap();
 }

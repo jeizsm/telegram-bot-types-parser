@@ -115,10 +115,7 @@ impl Generator for FieldType {
 }
 
 pub fn generate_single_mod(module: &Module, string: &mut String) {
-    let mut scope = Scope::new();
-    scope.raw(&format!("mod {};", &module.module_name));
-    string.push_str(&scope.to_string());
-    string.push_str("\n");
+    string.insert_str(0, &format!("mod {};\n", &module.module_name));
     let mut scope = Scope::new();
     scope
         .import(
