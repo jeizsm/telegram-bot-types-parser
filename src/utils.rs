@@ -11,12 +11,12 @@ pub fn camel_case(string: &str) -> String {
 
 // kept you waiting huh
 pub fn snake_case(string: &str) -> String {
-    let mut new_string = string.to_string();
+    let mut new_string = string.to_owned();
     let lowercase = &new_string[0..1].to_lowercase();
     new_string.replace_range(0..1, lowercase);
     let vec: Vec<_> = new_string
         .match_indices(char::is_uppercase)
-        .map(|(i, character)| (i, character.to_string()))
+        .map(|(i, character)| (i, character.to_owned()))
         .collect();
     for (i, (j, character)) in vec.into_iter().enumerate() {
         let mut lowercase = character.to_lowercase();

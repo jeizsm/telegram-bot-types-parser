@@ -22,7 +22,7 @@ pub struct TelegramField {
 #[derive(Debug)]
 pub struct TelegramFieldType {
     pub name: String,
-    pub optional: bool,
+    pub is_optional: bool,
 }
 
 #[derive(Debug)]
@@ -32,45 +32,47 @@ pub enum TelegramTypeOrMethod {
 }
 
 #[derive(Debug)]
-pub struct RustField {
+pub struct Field {
     pub name: String,
-    pub rust_type: RustType,
+    pub field_type: FieldType,
     pub doc: String,
 }
 
 #[derive(Debug)]
-pub struct RustStruct {
+pub struct Type {
     pub name: String,
     pub docs: Vec<String>,
-    pub fields: Vec<RustField>,
-    pub kind: Kind,
+    pub fields: Vec<Field>,
+    pub kind: TypeKind,
 }
 
 #[derive(Debug)]
-pub enum RustType {
-    String(String),
-    Enum(RustEnum),
-}
-
-#[derive(Debug)]
-pub struct RustEnum {
-    pub is_array: bool,
+pub struct FieldType {
+    pub array_count: usize,
     pub is_optional: bool,
-    pub variants: Vec<String>,
     pub doc: Option<String>,
     pub name: String,
+    pub kind: FieldKind,
+    pub is_boxed: bool,
 }
 
 #[derive(Debug, Eq, PartialEq, Hash)]
-pub enum Kind {
+pub enum TypeKind {
     Type,
     Method,
     Enum,
 }
 
 #[derive(Debug, Eq, PartialEq, Hash)]
+pub enum FieldKind {
+    Simple,
+    Enum(Vec<String>),
+}
+
+#[derive(Debug, Eq, PartialEq, Hash)]
 pub struct Module {
-    pub kind: Kind,
+    pub kind: TypeKind,
     pub module_name: String,
     pub module_type: String,
+    pub contents: String,
 }

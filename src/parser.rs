@@ -24,7 +24,7 @@ trait Parse {
     fn parse_name(node: &NodeRef) -> String {
         let child = node.last_child().unwrap();
         match child.as_text() {
-            Some(text) => text.borrow().to_string(),
+            Some(text) => text.borrow().to_owned(),
             None => panic!("cannot parse name"),
         }
     }
@@ -33,7 +33,7 @@ trait Parse {
         let nodes = node.children();
         nodes
             .map(|node| match node.as_text() {
-                Some(text) => text.borrow().to_string(),
+                Some(text) => text.borrow().to_owned(),
                 None => Self::parse_doc(&node),
             })
             .collect()
@@ -46,7 +46,7 @@ trait Parse {
     fn parse_field(node: &NodeRef) -> String {
         let child = node.first_child().unwrap();
         match child.as_text() {
-            Some(text) => text.borrow().to_string(),
+            Some(text) => text.borrow().to_owned(),
             None => panic!("something wrong"),
         }
     }
@@ -54,7 +54,7 @@ trait Parse {
     fn parse_type(node: &NodeRef) -> String {
         node.children()
             .map(|child| match child.as_text() {
-                Some(text) => text.borrow().to_string(),
+                Some(text) => text.borrow().to_owned(),
                 None => Self::parse_type(&child),
             })
             .collect()
@@ -99,17 +99,17 @@ impl Parse for TelegramType {
                         _ => panic!("no field, type, doc or required field"),
                     }).collect();
                 let doc = &field[2];
-                let optional = doc.starts_with("Optional. ");
-                let doc = if optional {
+                let is_optional = doc.starts_with("Optional. ");
+                let doc = if is_optional {
                     doc.replace("Optional. ", "")
                 } else {
-                    doc.to_string()
+                    doc.to_owned()
                 };
                 TelegramField {
                     name: field[0].clone(),
                     telegram_type: TelegramFieldType {
                         name: field[1].clone(),
-                        optional,
+                        is_optional,
                     },
                     doc,
                 }
@@ -142,7 +142,7 @@ impl Parse for TelegramMethod {
                     name: field[0].clone(),
                     telegram_type: TelegramFieldType {
                         name: field[1].clone(),
-                        optional: "Optional" == field[2],
+                        is_optional: "Optional" == field[2],
                     },
                     doc: field[3].clone(),
                 }
@@ -159,7 +159,7 @@ impl Parse for TelegramMethod {
     }
 }
 
-impl Parse for RustEnum {
+impl Parse for FieldType {
     fn parse(node: &NodeRef) -> Self {
         let mut siblings = node.preceding_siblings();
         let p = siblings.nth(1).unwrap();
@@ -178,12 +178,13 @@ impl Parse for RustEnum {
                     .to_string()
             })
             .collect();
-        RustEnum {
+        Self {
             name,
             doc: Some(doc),
-            variants,
-            is_array: false,
+            array_count: 0,
             is_optional: false,
+            kind: FieldKind::Enum(variants),
+            is_boxed: false,
         }
     }
 }
@@ -200,7 +201,7 @@ pub fn parser(document: &NodeRef) -> Vec<TelegramTypeOrMethod> {
         .collect()
 }
 
-pub fn enum_parser(document: &NodeRef) -> Vec<RustEnum> {
+pub fn enum_parser(document: &NodeRef) -> Vec<FieldType> {
     let css_selector = "h4 + p + ul";
     document
         .select(css_selector)
@@ -208,7 +209,7 @@ pub fn enum_parser(document: &NodeRef) -> Vec<RustEnum> {
         .skip(2)
         .map(|ul| {
             let ul = ul.as_node();
-            RustEnum::parse(ul)
+            FieldType::parse(ul)
         })
         .collect()
 }

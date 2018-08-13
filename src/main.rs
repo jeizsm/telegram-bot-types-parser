@@ -1,18 +1,19 @@
 extern crate codegen;
 extern crate kuchiki;
 mod converter;
+mod generator;
 mod parser;
 mod types;
 mod utils;
 mod writer;
 
+use generator::Generator;
 use kuchiki::traits::TendrilSink;
 use parser::{enum_parser, parser};
 use std::collections::HashSet;
 use std::{env, fs};
-use types::Kind;
-use types::RustStruct;
-use writer::{write_mod_files, Writer};
+use types::{Type, TypeKind};
+use writer::write_mod_files;
 
 fn main() {
     let mut args = env::args().skip(1);
@@ -22,22 +23,22 @@ fn main() {
     let document = kuchiki::parse_html().one(html);
 
     let parsed = parser(&document);
-    let converted: Vec<RustStruct> = parsed.into_iter().map(Into::into).collect();
+    let converted: Vec<Type> = parsed.into_iter().map(Into::into).collect();
     let enum_parsed = enum_parser(&document);
 
     let mut modules = HashSet::new();
     for i in converted {
-        i.write(&dir, &mut modules);
+        i.generate(&mut modules);
     }
 
     for i in enum_parsed {
-        i.write(&dir, &mut modules);
+        i.generate(&mut modules);
     }
 
-    let types = modules.iter().filter(|module| module.kind == Kind::Type);
-    let methods = modules.iter().filter(|module| module.kind == Kind::Method);
-    let enums = modules.iter().filter(|module| module.kind == Kind::Enum);
-    write_mod_files(&dir, &Kind::Type, types);
-    write_mod_files(&dir, &Kind::Method, methods);
-    write_mod_files(&dir, &Kind::Enum, enums);
+    let types = modules.iter().filter(|module| module.kind == TypeKind::Type);
+    let methods = modules.iter().filter(|module| module.kind == TypeKind::Method);
+    let enums = modules.iter().filter(|module| module.kind == TypeKind::Enum);
+    write_mod_files(&dir, &TypeKind::Type, types);
+    write_mod_files(&dir, &TypeKind::Method, methods);
+    write_mod_files(&dir, &TypeKind::Enum, enums);
 }

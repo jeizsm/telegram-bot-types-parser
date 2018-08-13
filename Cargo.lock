@@ -11,7 +11,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "codegen"
 version = "0.1.0"
-source = "git+https://github.com/LegNeato/codegen?branch=issue-3-and-4-field-documentation-annotation#e035d3472c253e20c9a28bd674872891d497ebbd"
+source = "git+https://github.com/jeizsm/codegen?branch=issue-3-and-4-field-documentation-annotation#997d877d6b831b70fe406defb90b4ba281eac1f2"
 dependencies = [
  "ordermap 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -397,7 +397,7 @@ dependencies = [
 name = "telegram-bot-types-parser"
 version = "0.1.0"
 dependencies = [
- "codegen 0.1.0 (git+https://github.com/LegNeato/codegen?branch=issue-3-and-4-field-documentation-annotation)",
+ "codegen 0.1.0 (git+https://github.com/jeizsm/codegen?branch=issue-3-and-4-field-documentation-annotation)",
  "kuchiki 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -461,7 +461,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [metadata]
 "checksum bitflags 1.0.3 (registry+https://github.com/rust-lang/crates.io-index)" = "d0c54bb8f454c567f21197eefcdbf5679d0bd99f2ddbe52e84c77061952e6789"
 "checksum cfg-if 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)" = "efe5c877e17a9c717a0bf3613b2709f723202c4e4675cc8f12926ded29bcb17e"
-"checksum codegen 0.1.0 (git+https://github.com/LegNeato/codegen?branch=issue-3-and-4-field-documentation-annotation)" = "<none>"
+"checksum codegen 0.1.0 (git+https://github.com/jeizsm/codegen?branch=issue-3-and-4-field-documentation-annotation)" = "<none>"
 "checksum cssparser 0.23.10 (registry+https://github.com/rust-lang/crates.io-index)" = "8f1c74d99b0f489cc546336b911452562ebfd4aec034b0c526cb77a3a02d3790"
 "checksum cssparser-macros 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)" = "72b64d0d64184a082f38028396875c08c8ee083481f6f16e6e0cf52c338bd785"
 "checksum dtoa 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)" = "6d301140eb411af13d3115f9a562c85cc6b541ade9dfa314132244aaee7489dd"

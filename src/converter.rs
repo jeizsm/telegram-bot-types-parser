@@ -1,56 +1,48 @@
 use types::*;
 use utils::{camel_case, capitalize};
 
-trait IntoRustType {
-    fn into_type(self, name: &str) -> RustType;
+trait IntoFieldType {
+    fn into_field_type(self, name: &str) -> FieldType;
 }
 
-trait IntoRustEnum {
-    fn into_enum(self, name: &str) -> RustEnum;
-}
-
-trait IntoRustTypeString {
-    fn into_string(self, name: &str) -> String;
-}
-
-impl From<TelegramMethod> for RustStruct {
+impl From<TelegramMethod> for Type {
     fn from(method: TelegramMethod) -> Self {
-        let fields = method.fields.into_iter().map(|a| a.into()).collect();
+        let fields = method.fields.into_iter().map(Into::into).collect();
         let mut name = method.name;
         capitalize(&mut name);
         Self {
             name,
             docs: method.docs,
             fields,
-            kind: Kind::Method,
+            kind: TypeKind::Method,
         }
     }
 }
 
-impl From<TelegramType> for RustStruct {
+impl From<TelegramType> for Type {
     fn from(telegram_type: TelegramType) -> Self {
-        let fields = telegram_type.fields.into_iter().map(|a| a.into()).collect();
+        let fields = telegram_type.fields.into_iter().map(Into::into).collect();
         Self {
             name: telegram_type.name,
             docs: telegram_type.docs,
             fields,
-            kind: Kind::Type,
+            kind: TypeKind::Type,
         }
     }
 }
 
-impl From<TelegramField> for RustField {
+impl From<TelegramField> for Field {
     fn from(field: TelegramField) -> Self {
-        let rust_type = field.telegram_type.into_type(&field.name);
+        let field_type = field.telegram_type.into_field_type(&field.name);
         Self {
             doc: field.doc,
             name: field.name,
-            rust_type,
+            field_type,
         }
     }
 }
 
-impl From<TelegramTypeOrMethod> for RustStruct {
+impl From<TelegramTypeOrMethod> for Type {
     fn from(method: TelegramTypeOrMethod) -> Self {
         match method {
             TelegramTypeOrMethod::Method(method) => method.into(),
@@ -59,65 +51,29 @@ impl From<TelegramTypeOrMethod> for RustStruct {
     }
 }
 
-impl IntoRustType for TelegramFieldType {
-    fn into_type(self, name: &str) -> RustType {
-        if self.name.contains(" or ") || self.name.contains(" and ") {
-            RustType::Enum(self.into_enum(name))
+impl IntoFieldType for TelegramFieldType {
+    fn into_field_type(self, field_name: &str) -> FieldType {
+        let array_count = self.name.matches("Array of ").count();
+        let mut type_name = self.name.replacen("Array of ", "", array_count);
+        let contains_or = type_name.contains(" or ");
+        let kind = if contains_or || type_name.contains(" and ") {
+            let variants = if contains_or {
+                type_name.split(" or ")
+            } else {
+                type_name.split(" and ")
+            }.map(ToOwned::to_owned).collect();
+            type_name = camel_case(field_name);
+            FieldKind::Enum(variants)
         } else {
-            RustType::String(self.into_string(name))
-        }
-    }
-}
-
-impl IntoRustTypeString for TelegramFieldType {
-    fn into_string(self, field_name: &str) -> String {
-        let mut string = match (self.name.as_ref(), field_name) {
-            ("Float number", _) => "Float".to_string(),
-            ("Boolean", _) => "bool".to_string(),
-            (_, "pinned_message") => "Box<Message>".to_string(),
-            (_, "reply_to_message") => "Box<Message>".to_string(),
-            _ => self.name,
+            FieldKind::Simple
         };
-        loop {
-            let start_index = string.find("Array of ");
-            match start_index {
-                Some(start_index) => {
-                    let end_index = start_index + "Array of ".len();
-                    string.replace_range(start_index..end_index, "Vec<");
-                    string.push_str(">");
-                }
-                None => break,
-            }
-        }
-        if self.optional {
-            format!("Option<{}>", string)
-        } else {
-            string
-        }
-    }
-}
-
-impl IntoRustEnum for TelegramFieldType {
-    fn into_enum(self, name: &str) -> RustEnum {
-        let is_array = self.name.starts_with("Array of ");
-        let variants = if is_array {
-            self.name
-                .replacen("Array of ", "", 1)
-                .split(" and ")
-                .map(|string| string.to_string())
-                .collect()
-        } else {
-            self.name
-                .split(" or ")
-                .map(|string| string.to_string())
-                .collect()
-        };
-        RustEnum {
-            is_optional: self.optional,
-            is_array,
-            variants,
+        FieldType {
+            is_boxed: false,
+            array_count,
             doc: None,
-            name: camel_case(&name),
+            kind,
+            name: type_name,
+            is_optional: self.is_optional,
         }
     }
 }
