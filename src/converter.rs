@@ -1,18 +1,12 @@
 use types::*;
-use utils::{camel_case, capitalize};
+use utils::capitalize;
 
 impl From<TelegramMethod> for Type {
     fn from(method: TelegramMethod) -> Self {
         let fields = method.fields.into_iter().map(Into::into).collect();
         let mut name = method.name;
         capitalize(&mut name);
-        let return_type = method.return_type;
-        let field_name = return_type.replace(" ", "_");
-        let return_type = TelegramFieldType {
-            name: return_type,
-            is_optional: false,
-        };
-        let return_type = return_type.into_field_type(&field_name);
+        let return_type = method.return_type.into();
         Self {
             name,
             docs: method.docs,
@@ -36,7 +30,7 @@ impl From<TelegramType> for Type {
 
 impl From<TelegramField> for Field {
     fn from(field: TelegramField) -> Self {
-        let field_type = field.telegram_type.into_field_type(&field.name);
+        let field_type = field.telegram_type.into();
         Self {
             doc: field.doc,
             name: field.name,
@@ -54,30 +48,30 @@ impl From<TelegramTypeOrMethod> for Type {
     }
 }
 
-impl TelegramFieldType {
-    fn into_field_type(self, field_name: &str) -> FieldType {
-        let array_count = self.name.matches("Array of ").count();
-        let mut type_name = self.name.replacen("Array of ", "", array_count);
+impl From<TelegramFieldType> for FieldType {
+    fn from(field_type: TelegramFieldType) -> Self {
+        let array_count = field_type.name.matches("Array of ").count();
+        let mut type_name = field_type.name.replacen("Array of ", "", array_count);
         let contains_or = type_name.contains(" or ");
         let kind = if contains_or || type_name.contains(" and ") {
-            let variants = if contains_or {
+            let variants: Vec<_> = if contains_or {
                 type_name.split(" or ")
             } else {
                 type_name.split(" and ")
             }.map(ToOwned::to_owned)
                 .collect();
-            type_name = camel_case(field_name);
+            type_name = variants.join("Or");
             FieldKind::Enum(variants)
         } else {
             FieldKind::Simple
         };
-        FieldType {
+        Self {
             is_boxed: false,
             array_count,
             doc: None,
             kind,
             name: type_name,
-            is_optional: self.is_optional,
+            is_optional: field_type.is_optional,
         }
     }
 }

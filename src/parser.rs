@@ -123,6 +123,10 @@ impl Parse for TelegramMethod {
         let (name, docs) = Self::parse_name_and_docs(table.preceding_siblings());
         let fields = Self::parse_fields(table.select("tr").unwrap());
         let return_type = Self::parse_return_type(&docs[0]);
+        let return_type = TelegramFieldType {
+            name: return_type,
+            is_optional: false,
+        };
         Self {
             name,
             docs,

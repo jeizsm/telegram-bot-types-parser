@@ -15,21 +15,20 @@ impl Generator for Type {
     fn generate(self, modules: &mut HashSet<Module>) -> Self::ReturnType {
         let mut scope = Scope::new();
         if let TypeKind::Method(return_type) = self.kind.clone() {
-                scope.import("super", "*");
-                let return_type = return_type.generate(modules);
-                let annotation = format!(r#"return_type = "{}""#, return_type);
-                let new_struct = scope
-                    .new_struct(&self.name)
-                    .doc(&self.docs.join("\n"))
-                    .derive("Serialize")
-                    .derive("Debug")
-                    .derive("TelegramApi")
-                    .annotation(vec![&annotation])
-                    .vis("pub");
-                for field in self.fields {
-                    new_struct.push_field(field.generate(modules));
-                }
-
+            scope.import("super", "*");
+            let return_type = return_type.generate(modules);
+            let annotation = format!(r#"return_type = "{}""#, return_type);
+            let new_struct = scope
+                .new_struct(&self.name)
+                .doc(&self.docs.join("\n"))
+                .derive("Serialize")
+                .derive("Debug")
+                .derive("TelegramApi")
+                .annotation(vec![&annotation])
+                .vis("pub");
+            for field in self.fields {
+                new_struct.push_field(field.generate(modules));
+            }
         } else {
             scope.import("super", "*");
             let new_struct = scope

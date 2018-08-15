@@ -1,14 +1,3 @@
-pub fn camel_case(string: &str) -> String {
-    string
-        .split('_')
-        .map(|old_string| {
-            let mut new_string = old_string.to_string();
-            new_string.replace_range(0..1, &old_string[0..1].to_uppercase());
-            new_string
-        })
-        .collect()
-}
-
 // kept you waiting huh
 pub fn snake_case(string: &str) -> String {
     let mut new_string = string.to_owned();

@@ -17,6 +17,7 @@ pub fn write_mod_files<'a>(dir: &str, mut modules: Peekable<impl Iterator<Item =
 fn write_types_mod<'a, P: AsRef<Path>>(dir: P, modules: impl Iterator<Item = &'a Module>) {
     let mut path = dir.as_ref().to_path_buf();
     path.push("types");
+    fs::create_dir_all(path.as_path()).unwrap();
     let mut string = String::new();
     let mut scope = Scope::new();
     scope.import("self::enums", "*").vis("pub");
@@ -72,6 +73,7 @@ fn write_methods_mod<'a, P: AsRef<Path>>(dir: P, modules: impl Iterator<Item = &
     let mut path = dir.as_ref().to_path_buf();
     let mut string = String::new();
     path.push("methods");
+    fs::create_dir_all(path.as_path()).unwrap();
     let mut scope = Scope::new();
     scope.import("types", "*");
     string.push_str(&scope.to_string());
@@ -85,6 +87,7 @@ fn write_enums_mod<'a, P: AsRef<Path>>(dir: P, modules: impl Iterator<Item = &'a
     let mut path = dir.as_ref().to_path_buf();
     path.push("types");
     path.push("enums");
+    fs::create_dir_all(path.as_path()).unwrap();
     let mut string = String::new();
     let mut scope = Scope::new();
     scope.import("super", "*");
