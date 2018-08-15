@@ -59,6 +59,7 @@ impl Generator for Field {
     type ReturnType = CodegenField;
 
     fn generate(mut self, modules: &mut HashSet<Module>) -> Self::ReturnType {
+        let is_optional = self.field_type.is_optional;
         let field_type = match self.name.as_ref() {
             "pinned_message" | "reply_to_message" => {
                 self.field_type.is_boxed = true;
@@ -69,11 +70,14 @@ impl Generator for Field {
         let mut field = match self.name.as_ref() {
             "type" => {
                 let mut field = CodegenField::new("type_", field_type);
-                field.annotation(vec![r#"#[serde(rename = "type")]"#]);
+                field.annotation(vec![r#"serde(rename = "type")"#]);
                 field
             }
             name => CodegenField::new(name, field_type),
         };
+        if is_optional {
+            field.push_annotation(r#"serde(skip_serializing_if = "Option::is_none")"#);
+        }
         field.vis("pub").doc(&self.doc);
         field
     }

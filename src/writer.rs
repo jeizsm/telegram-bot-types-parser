@@ -31,6 +31,7 @@ fn write_types_mod<'a, P: AsRef<Path>>(dir: P, modules: impl Iterator<Item = &'a
         .derive("Serialize")
         .derive("Deserialize")
         .derive("Debug")
+        .derive("NewType")
         .tuple_field("i64")
         .vis("pub");
     scope
@@ -38,6 +39,7 @@ fn write_types_mod<'a, P: AsRef<Path>>(dir: P, modules: impl Iterator<Item = &'a
         .derive("Serialize")
         .derive("Deserialize")
         .derive("Debug")
+        .derive("NewType")
         .tuple_field("bool")
         .vis("pub");
     scope
@@ -45,6 +47,7 @@ fn write_types_mod<'a, P: AsRef<Path>>(dir: P, modules: impl Iterator<Item = &'a
         .derive("Serialize")
         .derive("Deserialize")
         .derive("Debug")
+        .derive("NewType")
         .tuple_field("f64")
         .vis("pub");
     scope
@@ -58,6 +61,7 @@ fn write_types_mod<'a, P: AsRef<Path>>(dir: P, modules: impl Iterator<Item = &'a
         .derive("Serialize")
         .derive("Deserialize")
         .derive("Debug")
+        .derive("NewType")
         .tuple_field("String")
         .vis("pub");
     string.push_str(&scope.to_string());

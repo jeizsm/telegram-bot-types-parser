@@ -35,9 +35,19 @@ fn main() {
         i.generate(&mut modules);
     }
 
-    let types = modules.iter().filter(|module| module.kind == TypeKind::Type);
-    let methods = modules.iter().filter(|module| if let TypeKind::Method(_) = module.kind { true } else { false });
-    let enums = modules.iter().filter(|module| module.kind == TypeKind::Enum);
+    let types = modules
+        .iter()
+        .filter(|module| module.kind == TypeKind::Type);
+    let methods = modules.iter().filter(|module| {
+        if let TypeKind::Method(_) = module.kind {
+            true
+        } else {
+            false
+        }
+    });
+    let enums = modules
+        .iter()
+        .filter(|module| module.kind == TypeKind::Enum);
     write_mod_files(&dir, types.peekable());
     write_mod_files(&dir, methods.peekable());
     write_mod_files(&dir, enums.peekable());
