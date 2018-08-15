@@ -3,6 +3,7 @@ pub struct TelegramMethod {
     pub name: String,
     pub docs: Vec<String>,
     pub fields: Vec<TelegramField>,
+    pub return_type: String,
 }
 
 #[derive(Debug)]

@@ -23,7 +23,7 @@ fn main() {
     let document = kuchiki::parse_html().one(html);
 
     let parsed = parser(&document);
-    let converted: Vec<Type> = parsed.into_iter().map(Into::into).collect();
+    let converted = parsed.map(Into::<Type>::into);
     let enum_parsed = enum_parser(&document);
 
     let mut modules = HashSet::new();
