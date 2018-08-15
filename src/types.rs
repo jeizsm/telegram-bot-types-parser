@@ -47,7 +47,7 @@ pub struct Type {
     pub kind: TypeKind,
 }
 
-#[derive(Debug, Eq, PartialEq, Hash)]
+#[derive(Debug, Eq, PartialEq, Hash, Clone)]
 pub struct FieldType {
     pub array_count: usize,
     pub is_optional: bool,
@@ -57,14 +57,14 @@ pub struct FieldType {
     pub is_boxed: bool,
 }
 
-#[derive(Debug, Eq, PartialEq, Hash)]
+#[derive(Debug, Eq, PartialEq, Hash, Clone)]
 pub enum TypeKind {
     Type,
     Method(FieldType),
     Enum,
 }
 
-#[derive(Debug, Eq, PartialEq, Hash)]
+#[derive(Debug, Eq, PartialEq, Hash, Clone)]
 pub enum FieldKind {
     Simple,
     Enum(Vec<String>),

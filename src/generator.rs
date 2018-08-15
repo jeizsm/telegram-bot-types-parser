@@ -1,4 +1,4 @@
-use codegen::{Scope, Field as CodegenField};
+use codegen::{Field as CodegenField, Scope};
 use std::collections::HashSet;
 use types::*;
 use utils::*;
@@ -14,7 +14,23 @@ impl Generator for Type {
 
     fn generate(self, modules: &mut HashSet<Module>) -> Self::ReturnType {
         let mut scope = Scope::new();
-        {
+        if let TypeKind::Method(return_type) = self.kind.clone() {
+                scope.import("super", "*");
+                let return_type = return_type.generate(modules);
+                let annotation = format!(r#"return_type = "{}""#, return_type);
+                let new_struct = scope
+                    .new_struct(&self.name)
+                    .doc(&self.docs.join("\n"))
+                    .derive("Serialize")
+                    .derive("Debug")
+                    .derive("TelegramApi")
+                    .annotation(vec![&annotation])
+                    .vis("pub");
+                for field in self.fields {
+                    new_struct.push_field(field.generate(modules));
+                }
+
+        } else {
             scope.import("super", "*");
             let new_struct = scope
                 .new_struct(&self.name)
@@ -96,6 +112,7 @@ impl Generator for FieldType {
         field_type = match field_type.as_ref() {
             "Boolean" => "bool".to_string(),
             "Float number" => "Float".to_string(),
+            "Int" => "Integer".to_string(),
             _ => field_type,
         };
         if self.is_boxed {
