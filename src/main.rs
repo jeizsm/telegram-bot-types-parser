@@ -36,9 +36,9 @@ fn main() {
     }
 
     let types = modules.iter().filter(|module| module.kind == TypeKind::Type);
-    let methods = modules.iter().filter(|module| module.kind == TypeKind::Method);
+    let methods = modules.iter().filter(|module| if let TypeKind::Method(_) = module.kind { true } else { false });
     let enums = modules.iter().filter(|module| module.kind == TypeKind::Enum);
-    write_mod_files(&dir, &TypeKind::Type, types);
-    write_mod_files(&dir, &TypeKind::Method, methods);
-    write_mod_files(&dir, &TypeKind::Enum, enums);
+    write_mod_files(&dir, types.peekable());
+    write_mod_files(&dir, methods.peekable());
+    write_mod_files(&dir, enums.peekable());
 }

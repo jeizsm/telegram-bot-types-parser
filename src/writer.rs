@@ -1,13 +1,15 @@
+use codegen::Scope;
 use generator::generate_single_mod;
-use codegen::{Scope};
 use std::fs;
+use std::iter::Peekable;
 use std::path::{Path, PathBuf};
 use types::{Module, TypeKind};
 
-pub fn write_mod_files<'a>(dir: &str, kind: &TypeKind, modules: impl Iterator<Item = &'a Module>) {
-    match *kind {
+pub fn write_mod_files<'a>(dir: &str, mut modules: Peekable<impl Iterator<Item = &'a Module>>) {
+    let kind = &modules.peek().unwrap().kind;
+    match kind {
         TypeKind::Type => write_types_mod(dir, modules),
-        TypeKind::Method => write_methods_mod(dir, modules),
+        TypeKind::Method(_) => write_methods_mod(dir, modules),
         TypeKind::Enum => write_enums_mod(dir, modules),
     }
 }
@@ -89,7 +91,11 @@ fn write_enums_mod<'a, P: AsRef<Path>>(dir: P, modules: impl Iterator<Item = &'a
     fs::write(path, string).unwrap();
 }
 
-pub fn write_module_file<'a>(path: &PathBuf, modules: impl Iterator<Item = &'a Module>, string: &mut String) {
+pub fn write_module_file<'a>(
+    path: &PathBuf,
+    modules: impl Iterator<Item = &'a Module>,
+    string: &mut String,
+) {
     for module in modules {
         let mut path = path.clone();
         path.push(&module.module_name);

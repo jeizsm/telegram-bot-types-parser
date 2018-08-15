@@ -47,7 +47,7 @@ pub struct Type {
     pub kind: TypeKind,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq, Hash)]
 pub struct FieldType {
     pub array_count: usize,
     pub is_optional: bool,
@@ -60,7 +60,7 @@ pub struct FieldType {
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub enum TypeKind {
     Type,
-    Method,
+    Method(FieldType),
     Enum,
 }
 

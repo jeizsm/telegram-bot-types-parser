@@ -1,20 +1,23 @@
 use types::*;
 use utils::{camel_case, capitalize};
 
-trait IntoFieldType {
-    fn into_field_type(self, name: &str) -> FieldType;
-}
-
 impl From<TelegramMethod> for Type {
     fn from(method: TelegramMethod) -> Self {
         let fields = method.fields.into_iter().map(Into::into).collect();
         let mut name = method.name;
         capitalize(&mut name);
+        let return_type = method.return_type;
+        let field_name = return_type.replace(" ", "_");
+        let return_type = TelegramFieldType {
+            name: return_type,
+            is_optional: false,
+        };
+        let return_type = return_type.into_field_type(&field_name);
         Self {
             name,
             docs: method.docs,
             fields,
-            kind: TypeKind::Method,
+            kind: TypeKind::Method(return_type),
         }
     }
 }
@@ -51,7 +54,7 @@ impl From<TelegramTypeOrMethod> for Type {
     }
 }
 
-impl IntoFieldType for TelegramFieldType {
+impl TelegramFieldType {
     fn into_field_type(self, field_name: &str) -> FieldType {
         let array_count = self.name.matches("Array of ").count();
         let mut type_name = self.name.replacen("Array of ", "", array_count);
@@ -61,7 +64,8 @@ impl IntoFieldType for TelegramFieldType {
                 type_name.split(" or ")
             } else {
                 type_name.split(" and ")
-            }.map(ToOwned::to_owned).collect();
+            }.map(ToOwned::to_owned)
+                .collect();
             type_name = camel_case(field_name);
             FieldKind::Enum(variants)
         } else {
