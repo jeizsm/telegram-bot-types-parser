@@ -57,14 +57,6 @@ fn write_types_mod<'a, P: AsRef<Path>>(dir: P, modules: impl Iterator<Item = &'a
         .derive("Deserialize")
         .derive("Debug")
         .vis("pub");
-    scope
-        .new_struct("InputFile")
-        .derive("Serialize")
-        .derive("Deserialize")
-        .derive("Debug")
-        .derive("NewType")
-        .tuple_field("String")
-        .vis("pub");
     string.push_str(&scope.to_string());
     fs::write(path, string).unwrap();
 }
