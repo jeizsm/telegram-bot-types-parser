@@ -260,6 +260,7 @@ impl Parse for FieldType {
                     .unwrap()
                     .to_string()
             })
+            .map(|a| (a.clone(), a))
             .collect();
         Self {
             name,

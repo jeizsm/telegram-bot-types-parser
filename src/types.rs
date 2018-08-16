@@ -67,7 +67,7 @@ pub enum TypeKind {
 #[derive(Debug, Eq, PartialEq, Hash, Clone)]
 pub enum FieldKind {
     Simple,
-    Enum(Vec<String>),
+    Enum(Vec<(String, String)>),
 }
 
 #[derive(Debug, Eq, PartialEq, Hash)]

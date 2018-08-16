@@ -14,8 +14,8 @@ impl Generator for Type {
 
     fn generate(self, modules: &mut HashSet<Module>) -> Self::ReturnType {
         let mut scope = Scope::new();
+        scope.import("types", "*");
         if let TypeKind::Method(return_type) = self.kind.clone() {
-            scope.import("super", "*");
             let return_type = return_type.generate(modules);
             let annotation = format!(r#"return_type = "{}""#, return_type);
             let new_struct = scope
@@ -30,7 +30,6 @@ impl Generator for Type {
                 new_struct.push_field(field.generate(modules));
             }
         } else {
-            scope.import("super", "*");
             let new_struct = scope
                 .new_struct(&self.name)
                 .doc(&self.docs.join("\n"))
@@ -89,7 +88,7 @@ impl Generator for FieldType {
         if let FieldKind::Enum(variants) = self.kind {
             let mut scope = Scope::new();
             {
-                scope.import("super", "*");
+                scope.import("types", "*");
                 let new_enum = scope
                     .new_enum(&self.name)
                     .derive("Serialize")
@@ -97,9 +96,9 @@ impl Generator for FieldType {
                     .derive("Debug")
                     .vis("pub")
                     .annotation(vec![r#"serde(untagged)"#]);
-                for string_variant in variants {
-                    let variant = new_enum.new_variant(&string_variant);
-                    variant.tuple(&string_variant);
+                for (variant_name, variant_type) in variants {
+                    let variant = new_enum.new_variant(&variant_name);
+                    variant.tuple(&variant_type);
                 }
             }
             let contents = scope.to_string();

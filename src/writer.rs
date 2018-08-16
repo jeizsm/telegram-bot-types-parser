@@ -75,7 +75,6 @@ fn write_methods_mod<'a, P: AsRef<Path>>(dir: P, modules: impl Iterator<Item = &
     path.push("methods");
     fs::create_dir_all(path.as_path()).unwrap();
     let mut scope = Scope::new();
-    scope.import("types", "*");
     string.push_str(&scope.to_string());
     write_module_file(&path, modules, &mut string);
     path.push("mod");
@@ -90,7 +89,6 @@ fn write_enums_mod<'a, P: AsRef<Path>>(dir: P, modules: impl Iterator<Item = &'a
     fs::create_dir_all(path.as_path()).unwrap();
     let mut string = String::new();
     let mut scope = Scope::new();
-    scope.import("super", "*");
     string.push_str(&scope.to_string());
     write_module_file(&path, modules, &mut string);
     path.push("mod");
