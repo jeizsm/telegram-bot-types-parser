@@ -171,7 +171,7 @@ impl Parse for TelegramMethod {
 
 impl TelegramMethod {
     fn parse_return_type(doc: &str) -> String {
-        let sentences = doc.split(".");
+        let sentences = doc.split('.');
         for sentence in sentences {
             if sentence.contains("is returned") || sentence.contains("eturns") {
                 if sentence.contains("otherwise") {
@@ -224,7 +224,7 @@ impl TelegramMethod {
         } else if word == "the" {
             word = words[position + 3]
         }
-        if word.ends_with(",") {
+        if word.ends_with(',') {
             word = &word[0..word.len() - 1]
         }
         word
@@ -235,7 +235,7 @@ impl TelegramMethod {
         if word.starts_with("object") {
             word = words[position - 3]
         }
-        if word.ends_with("s") {
+        if word.ends_with('s') {
             word = &word[0..word.len() - 1]
         }
         word

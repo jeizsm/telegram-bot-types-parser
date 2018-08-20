@@ -44,7 +44,7 @@ impl Generator for Type {
         let contents = scope.to_string();
         let module = Module {
             kind: self.kind,
-            contents: contents,
+            contents,
             module_name: snake_case(&self.name),
             module_type: self.name,
         };
@@ -104,7 +104,7 @@ impl Generator for FieldType {
             let contents = scope.to_string();
             let module = Module {
                 kind: TypeKind::Enum,
-                contents: contents,
+                contents,
                 module_name: snake_case(&self.name),
                 module_type: self.name.clone(),
             };
