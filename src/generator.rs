@@ -21,8 +21,8 @@ impl Generator for Type {
             let new_struct = scope
                 .new_struct(&self.name)
                 .doc(&self.docs.join("\n"))
-                .derive("Serialize")
                 .derive("Debug")
+                .derive("Serialize")
                 .derive("TelegramApi")
                 .annotation(vec![&annotation])
                 .vis("pub");
@@ -33,10 +33,18 @@ impl Generator for Type {
             let new_struct = scope
                 .new_struct(&self.name)
                 .doc(&self.docs.join("\n"))
-                .derive("Serialize")
-                .derive("Deserialize")
                 .derive("Debug")
+                .derive("Serialize")
                 .vis("pub");
+            {
+                let contains_input = self.fields.iter().find(|field| {
+                    let name = &field.field_type.name;
+                    name.contains("InputMedia") || name.contains("InputFile")
+                });
+                if contains_input.is_none() {
+                    new_struct.derive("Deserialize");
+                }
+            }
             for field in self.fields {
                 new_struct.push_field(field.generate(modules));
             }
@@ -65,14 +73,14 @@ impl Generator for Field {
             }
             _ => self.field_type.generate(modules),
         };
-        let mut field = match self.name.as_ref() {
-            "type" => {
-                let mut field = CodegenField::new("type_", field_type);
-                field.annotation(vec![r#"serde(rename = "type")"#]);
-                field
-            }
-            name => CodegenField::new(name, field_type),
+        let field_name = match self.name.as_ref() {
+            "type" => "type_",
+            name => name,
         };
+        let mut field = CodegenField::new(field_name, &field_type);
+        if field_name == "type_" {
+            field.push_annotation(r#"serde(rename = "type")"#);
+        }
         if is_optional {
             field.push_annotation(r#"serde(skip_serializing_if = "Option::is_none")"#);
         }
@@ -91,11 +99,18 @@ impl Generator for FieldType {
                 scope.import("types", "*");
                 let new_enum = scope
                     .new_enum(&self.name)
-                    .derive("Serialize")
-                    .derive("Deserialize")
                     .derive("Debug")
+                    .derive("Serialize")
                     .vis("pub")
                     .annotation(vec![r#"serde(untagged)"#]);
+                {
+                    let contains_input = variants.iter().find(|(_, variant_type)| {
+                        variant_type.contains("InputMedia") || variant_type.contains("InputFile")
+                    });
+                    if contains_input.is_none() {
+                        new_enum.derive("Deserialize");
+                    }
+                }
                 for (variant_name, variant_type) in variants {
                     let variant = new_enum.new_variant(&variant_name);
                     variant.tuple(&variant_type);
