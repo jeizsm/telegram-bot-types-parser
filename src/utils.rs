@@ -10,7 +10,7 @@ pub fn snake_case(string: &str) -> String {
     for (i, (j, character)) in vec.into_iter().enumerate() {
         let mut lowercase = character.to_lowercase();
         lowercase.insert_str(0, "_");
-        new_string.replace_range(i + j..i + j + 1, &lowercase);
+        new_string.replace_range(i + j..=i + j, &lowercase);
     }
     new_string
 }

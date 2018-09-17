@@ -28,30 +28,6 @@ fn write_types_mod<'a, P: AsRef<Path>>(dir: P, modules: impl Iterator<Item = &'a
     path.set_extension("rs");
     let mut scope = Scope::new();
     scope
-        .new_struct("Integer")
-        .derive("Serialize")
-        .derive("Deserialize")
-        .derive("Debug")
-        .derive("NewType")
-        .tuple_field("i64")
-        .vis("pub");
-    scope
-        .new_struct("True")
-        .derive("Serialize")
-        .derive("Deserialize")
-        .derive("Debug")
-        .derive("NewType")
-        .tuple_field("bool")
-        .vis("pub");
-    scope
-        .new_struct("Float")
-        .derive("Serialize")
-        .derive("Deserialize")
-        .derive("Debug")
-        .derive("NewType")
-        .tuple_field("f64")
-        .vis("pub");
-    scope
         .new_struct("CallbackGame")
         .derive("Serialize")
         .derive("Deserialize")
