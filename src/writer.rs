@@ -26,14 +26,6 @@ fn write_types_mod<'a, P: AsRef<Path>>(dir: P, modules: impl Iterator<Item = &'a
     write_module_file(&path, modules, &mut string);
     path.push("mod");
     path.set_extension("rs");
-    let mut scope = Scope::new();
-    scope
-        .new_struct("CallbackGame")
-        .derive("Serialize")
-        .derive("Deserialize")
-        .derive("Debug")
-        .vis("pub");
-    string.push_str(&scope.to_string());
     fs::write(path, string).unwrap();
 }
 
