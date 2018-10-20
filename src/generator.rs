@@ -42,7 +42,7 @@ impl Generator for Type {
                     name.contains("InputMedia") || name.contains("InputFile")
                 });
                 if contains_input.is_none() {
-                    new_struct.derive("Deserialize");
+                    new_struct.derive("Deserialize").derive("Clone");
                 }
             }
             for field in self.fields {
@@ -108,7 +108,7 @@ impl Generator for FieldType {
                         variant_type.contains("InputMedia") || variant_type.contains("InputFile")
                     });
                     if contains_input.is_none() {
-                        new_enum.derive("Deserialize");
+                        new_enum.derive("Deserialize").derive("Clone");
                     }
                 }
                 for (variant_name, variant_type) in variants {
