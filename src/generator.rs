@@ -6,47 +6,58 @@ use utils::*;
 pub trait Generator {
     type ReturnType;
 
-    fn generate(self, modules: &mut HashSet<Module>) -> Self::ReturnType;
+    fn generate(self, modules: &mut HashSet<Module>, return_types: &HashSet<String>) -> Self::ReturnType;
 }
 
 impl Generator for Type {
     type ReturnType = String;
 
-    fn generate(self, modules: &mut HashSet<Module>) -> Self::ReturnType {
+    fn generate(self, modules: &mut HashSet<Module>, return_types: &HashSet<String>) -> Self::ReturnType {
         let mut scope = Scope::new();
-        scope.import("types", "*");
+        scope.import("crate::types", "*");
         if let TypeKind::Method(return_type) = self.kind.clone() {
-            let return_type = return_type.generate(modules);
-            let annotation = format!(r#"return_type = "{}""#, return_type);
+            let return_type = return_type.generate(modules, return_types);
+            let return_type_annotation = format!(r#"return_type = "{}""#, return_type);
+            let new_annotation = r#"new(vis = "pub")"#;
+            let set_annotation = r#"set(vis = "pub")"#;
             let new_struct = scope
                 .new_struct(&self.name)
                 .doc(&self.docs.join("\n"))
                 .derive("Debug")
                 .derive("Serialize")
                 .derive("TelegramApi")
-                .annotation(vec![&annotation])
+                .derive("Setters")
+                .derive("New")
+                .annotation(vec![&return_type_annotation, new_annotation, set_annotation])
                 .vis("pub");
             for field in self.fields {
-                new_struct.push_field(field.generate(modules));
+                new_struct.push_field(field.generate(modules, return_types));
             }
         } else {
+            let set_annotation = r#"set(vis = "pub")"#;
+            let get_annotation = r#"get(vis = "pub")"#;
+            let new_annotation = r#"new(vis = "pub")"#;
             let new_struct = scope
                 .new_struct(&self.name)
                 .doc(&self.docs.join("\n"))
                 .derive("Debug")
-                .derive("Serialize")
                 .vis("pub");
             {
-                let contains_input = self.fields.iter().find(|field| {
-                    let name = &field.field_type.name;
-                    name.contains("InputMedia") || name.contains("InputFile")
-                });
-                if contains_input.is_none() {
-                    new_struct.derive("Deserialize").derive("Clone");
+                let return_type = return_types.get(&self.name).is_some();
+                if return_type || self.name == "WebhookInfo" {
+                    new_struct.derive("Deserialize").derive("Clone").derive("Getters");
+                    new_struct.annotation(vec![get_annotation]);
+                } else {
+                    new_struct.derive("Serialize").derive("Setters").derive("New");
+                    new_struct.annotation(vec![new_annotation, set_annotation]);
+                }
+                if self.name == "MaskPosition" {
+                    new_struct.derive("Serialize").derive("Setters").derive("New");
+                    new_struct.push_annotation(new_annotation).push_annotation(set_annotation);
                 }
             }
             for field in self.fields {
-                new_struct.push_field(field.generate(modules));
+                new_struct.push_field(field.generate(modules, return_types));
             }
         }
         let contents = scope.to_string();
@@ -64,14 +75,14 @@ impl Generator for Type {
 impl Generator for Field {
     type ReturnType = CodegenField;
 
-    fn generate(mut self, modules: &mut HashSet<Module>) -> Self::ReturnType {
+    fn generate(mut self, modules: &mut HashSet<Module>, return_types: &HashSet<String>) -> Self::ReturnType {
         let is_optional = self.field_type.is_optional;
         let field_type = match self.name.as_ref() {
             "pinned_message" | "reply_to_message" => {
                 self.field_type.is_boxed = true;
-                self.field_type.generate(modules)
+                self.field_type.generate(modules, return_types)
             }
-            _ => self.field_type.generate(modules),
+            _ => self.field_type.generate(modules, return_types),
         };
         let field_name = match self.name.as_ref() {
             "type" => "type_",
@@ -84,7 +95,8 @@ impl Generator for Field {
         if is_optional {
             field.push_annotation(r#"serde(skip_serializing_if = "Option::is_none")"#);
         }
-        field.vis("pub").doc(&self.doc);
+        field.doc(&self.doc);
+        field.vis("pub(crate)");
         field
     }
 }
@@ -92,23 +104,22 @@ impl Generator for Field {
 impl Generator for FieldType {
     type ReturnType = String;
 
-    fn generate(self, modules: &mut HashSet<Module>) -> Self::ReturnType {
+    fn generate(self, modules: &mut HashSet<Module>, return_types: &HashSet<String>) -> Self::ReturnType {
         if let FieldKind::Enum(variants) = self.kind {
             let mut scope = Scope::new();
             {
-                scope.import("types", "*");
+                scope.import("crate::types", "*");
                 let new_enum = scope
                     .new_enum(&self.name)
                     .derive("Debug")
-                    .derive("Serialize")
                     .vis("pub")
                     .annotation(vec![r#"serde(untagged)"#]);
                 {
-                    let contains_input = variants.iter().find(|(_, variant_type)| {
-                        variant_type.contains("InputMedia") || variant_type.contains("InputFile")
-                    });
-                    if contains_input.is_none() {
+                    let return_type = return_types.get(&self.name).is_some();
+                    if return_type {
                         new_enum.derive("Deserialize").derive("Clone");
+                    } else {
+                        new_enum.derive("Serialize");
                     }
                 }
                 for (variant_name, variant_type) in variants {

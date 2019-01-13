@@ -56,15 +56,20 @@ impl TelegramFieldType {
         let kind = if contains_or || type_name.contains(" and ") {
             let mut variants;
             if field_name.ends_with("chat_id") {
-                variants = vec![("Id".to_owned(), "Integer".to_owned()), ("Username".to_owned(), "String".to_string())];
+                variants = vec![
+                    ("Id".to_owned(), "Integer".to_owned()),
+                    ("Username".to_owned(), "String".to_string()),
+                ];
                 type_name = "ChatIdOrUsername".to_owned();
             } else {
                 variants = if contains_or {
                     type_name.split(" or ")
                 } else {
                     type_name.split(" and ")
-                }.map(ToOwned::to_owned).map(|a| (a.clone(), a))
-                    .collect();
+                }
+                .map(ToOwned::to_owned)
+                .map(|a| (a.clone(), a))
+                .collect();
                 if field_name == "reply_markup" {
                     type_name = "ReplyMarkup".to_string();
                 } else {

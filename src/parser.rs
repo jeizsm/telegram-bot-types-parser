@@ -91,13 +91,14 @@ impl Parse for TelegramType {
             .map(|tr| {
                 let tr = tr.as_node();
                 let tds = tr.children().select("td").unwrap().enumerate();
-                let field: Vec<String> =
-                    tds.map(|(i, td)| match i {
+                let field: Vec<String> = tds
+                    .map(|(i, td)| match i {
                         0 => Self::parse_field(&td.as_node()),
                         1 => Self::parse_type(&td.as_node()),
                         2 => Self::parse_doc(&td.as_node()),
                         _ => panic!("no field, type, doc or required field"),
-                    }).collect();
+                    })
+                    .collect();
                 let doc = &field[2];
                 let is_optional = doc.starts_with("Optional. ");
                 let doc = if is_optional {
@@ -140,14 +141,15 @@ impl Parse for TelegramMethod {
             .map(|tr| {
                 let tr = tr.as_node();
                 let tds = tr.children().select("td").unwrap().enumerate();
-                let field: Vec<String> =
-                    tds.map(|(i, td)| match i {
+                let field: Vec<String> = tds
+                    .map(|(i, td)| match i {
                         0 => Self::parse_field(&td.as_node()),
                         1 => Self::parse_type(&td.as_node()),
                         2 => Self::parse_required(&td.as_node()),
                         3 => Self::parse_doc(&td.as_node()),
                         _ => panic!("no field, type, doc or required field"),
-                    }).collect();
+                    })
+                    .collect();
                 TelegramField {
                     name: field[0].clone(),
                     telegram_type: TelegramFieldType {

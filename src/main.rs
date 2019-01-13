@@ -23,16 +23,30 @@ fn main() {
     let document = kuchiki::parse_html().one(html);
 
     let parsed = parser(&document);
-    let converted = parsed.map(Into::<Type>::into);
+    let converted: Vec<_> = parsed.map(Into::<Type>::into).collect();
+    let mut return_types: HashSet<_> = converted.iter().filter_map(|ty| {
+        if let TypeKind::Method(field) = &ty.kind {
+            Some(field.name.clone())
+        } else {
+            None
+        }
+    }).collect();
+    converted.iter().for_each(|ty| {
+        if return_types.get(&ty.name).is_some() {
+            ty.fields.iter().for_each(|field| {
+                return_types.insert(field.field_type.name.clone());
+            });
+        };
+    });
     let enum_parsed = enum_parser(&document);
 
     let mut modules = HashSet::new();
     for i in converted {
-        i.generate(&mut modules);
+        i.generate(&mut modules, &return_types);
     }
 
     for i in enum_parsed {
-        i.generate(&mut modules);
+        i.generate(&mut modules, &return_types);
     }
 
     let types = modules
