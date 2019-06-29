@@ -176,7 +176,9 @@ impl TelegramMethod {
         let sentences = doc.split('.');
         for sentence in sentences {
             if sentence.contains("is returned") || sentence.contains("eturns") {
-                if sentence.contains("otherwise") {
+                if sentence.contains("stopped Poll with the final results is returned") {
+                    return "Poll".to_string();
+                } else if sentence.contains("otherwise") {
                     return Self::parse_return_type_sentence(sentence, 2);
                 } else {
                     return Self::parse_return_type_sentence(sentence, 1);
@@ -285,7 +287,7 @@ pub fn parser(document: &NodeRef) -> impl Iterator<Item = TelegramTypeOrMethod> 
 
 pub fn enum_parser(document: &NodeRef) -> impl Iterator<Item = FieldType> {
     let css_selector = "h4 + p + ul";
-    document.select(css_selector).unwrap().skip(2).map(|ul| {
+    document.select(css_selector).unwrap().skip(4).map(|ul| {
         let ul = ul.as_node();
         FieldType::parse(ul)
     })

@@ -51,7 +51,7 @@ impl Generator for Type {
                     new_struct.derive("Serialize").derive("Setters").derive("New");
                     new_struct.annotation(vec![new_annotation, set_annotation]);
                 }
-                if self.name == "MaskPosition" {
+                if self.name == "MaskPosition" || self.name == "InlineKeyboardButton" || self.name == "InlineKeyboardMarkup" || self.name == "LoginUrl" {
                     new_struct.derive("Serialize").derive("Setters").derive("New");
                     new_struct.push_annotation(new_annotation).push_annotation(set_annotation);
                 }
